@@ -274,7 +274,7 @@ afu_zles=( \
 
 afu-install () {
   zstyle -t ':auto-fu:var' misc-installed-p || {
-    zmodload zsh/parameter 2>/dev/null || {
+    zmodload -i zsh/parameter 2>/dev/null || {
       echo 'auto-fu:zmodload error. exiting.' >&2; exit -1
     }
     afu-install-isearchmap
@@ -283,7 +283,7 @@ afu-install () {
     zstyle ':auto-fu:var' misc-installed-p yes
   }
 
-  bindkey -N afu emacs
+  bindkey -N afu viins
   { "$@" }
   bindkey -M afu "^I" afu+complete-word
   bindkey -M afu "^M" afu+accept-line
@@ -338,15 +338,14 @@ afu-register-zle-eof      afu+orf-exit-deletechar-list exit
 afu+vi-ins-mode () { zle -K afu      ; }; zle -N afu+vi-ins-mode
 afu+vi-cmd-mode () { zle -K afu-vicmd; }; zle -N afu+vi-cmd-mode
 
-auto-fu-zle-keymap-select () { afu-track-keymap "$@" afu-adjust-main-keymap }
+auto-fu-zle-keymap-select () { afu-track-keymap "$@" }
 
 afu-adjust-main-keymap () { [[ "$KEYMAP" == 'main' ]] && { zle -K "$1" } }
 
 afu-track-keymap () {
   typeset -gA afu_keymap_state # XXX: global state variable.
   local new="${KEYMAP}"
-  local old="${2}"
-  local fun="${3}"
+  local old="${1}"
   { afu-track-keymap-skip-p "$old" "$new" } && return
   local cur="${afu_keymap_state[cur]-}"
   afu_keymap_state+=(old "${afu_keymap_state[cur]-}")
@@ -354,7 +353,7 @@ afu-track-keymap () {
   [[ "$new" == 'main' ]] && [[ -n "$cur" ]] && {
     local -a tmp; tmp=("${(Q)=cur}")
     afu_keymap_state+=(cur "$old $tmp[1]")
-    "$fun" "$tmp[1]"
+    afu-adjust-main-keymap "$tmp[1]"
   }
 }
 
@@ -1300,7 +1299,7 @@ afu-initialize-register-zle-contrib-all~ () {
 
 afu-initialize-register-zle-contrib-all-collect-contribs () {
   local place="$1"
-  zmodload zsh/zleparameter || {
+  zmodload -i zsh/zleparameter || {
     echo 'auto-fu:zmodload error.' >&2; return -1
   }
   setopt localoptions extendedglob
