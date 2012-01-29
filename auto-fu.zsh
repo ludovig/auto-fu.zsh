@@ -283,7 +283,7 @@ afu-install () {
     zstyle ':auto-fu:var' misc-installed-p yes
   }
 
-  bindkey -N afu viins
+  bindkey -N afu emacs
   { "$@" }
   bindkey -M afu "^I" afu+complete-word
   bindkey -M afu "^M" afu+accept-line
