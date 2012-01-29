@@ -338,14 +338,15 @@ afu-register-zle-eof      afu+orf-exit-deletechar-list exit
 afu+vi-ins-mode () { zle -K afu      ; }; zle -N afu+vi-ins-mode
 afu+vi-cmd-mode () { zle -K afu-vicmd; }; zle -N afu+vi-cmd-mode
 
-auto-fu-zle-keymap-select () { afu-track-keymap "$@" }
+auto-fu-zle-keymap-select () { afu-track-keymap "$@" afu-adjust-main-keymap }
 
 afu-adjust-main-keymap () { [[ "$KEYMAP" == 'main' ]] && { zle -K "$1" } }
 
 afu-track-keymap () {
   typeset -gA afu_keymap_state # XXX: global state variable.
   local new="${KEYMAP}"
-  local old="${1}"
+  local fun="${argv[-1]}"
+  local old="${argv[-2]}"
   { afu-track-keymap-skip-p "$old" "$new" } && return
   local cur="${afu_keymap_state[cur]-}"
   afu_keymap_state+=(old "${afu_keymap_state[cur]-}")
@@ -353,7 +354,7 @@ afu-track-keymap () {
   [[ "$new" == 'main' ]] && [[ -n "$cur" ]] && {
     local -a tmp; tmp=("${(Q)=cur}")
     afu_keymap_state+=(cur "$old $tmp[1]")
-    afu-adjust-main-keymap "$tmp[1]"
+    "$fun" "$tmp[1]"
   }
 }
 
